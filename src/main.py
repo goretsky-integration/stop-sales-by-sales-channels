@@ -7,7 +7,7 @@ from config import Config, get_config
 from connections.auth_credentials_storage import (
     AuthCredentialsStorageConnection,
 )
-from connections.dodo_is import DodoIsConnection
+from connections.dodo_is import DodoIsApiConnection
 from connections.event_publisher import EventPublisher
 from context.auth_credentials_storage import AuthCredentialsFetcher
 from context.dodo_is import StopSalesFetcher
@@ -16,7 +16,11 @@ from dependencies import (
     get_dodo_is_connection,
     get_event_publisher,
 )
-from filters import filter_not_ended_stop_sales
+from enums import SalesChannel
+from filters import (
+    filter_by_sales_channels, filter_complete_stop_sales,
+    filter_not_ended_stop_sales,
+)
 from logger import create_logger, setup_logging
 from mappers import map_stop_sales_to_events
 from models import AccountUnits
@@ -31,7 +35,7 @@ async def main(
         auth_credentials_connection: AuthCredentialsStorageConnection = Depends(
             get_auth_credentials_storage_connection,
         ),
-        dodo_is_connection: DodoIsConnection = Depends(get_dodo_is_connection),
+        dodo_is_connection: DodoIsApiConnection = Depends(get_dodo_is_connection),
         accounts_units: list[AccountUnits] = Depends(load_units),
         config: Config = Depends(get_config),
         event_publisher: EventPublisher = Depends(get_event_publisher),
@@ -83,6 +87,11 @@ async def main(
         )
 
     stop_sales = filter_not_ended_stop_sales(stop_sales)
+    stop_sales = filter_complete_stop_sales(stop_sales)
+    stop_sales = filter_by_sales_channels(
+        stop_sales=stop_sales,
+        sales_channels=[SalesChannel.DINE_IN, SalesChannel.DELIVERY],
+    )
 
     events = map_stop_sales_to_events(stop_sales)
 

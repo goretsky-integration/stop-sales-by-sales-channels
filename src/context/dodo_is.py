@@ -7,12 +7,12 @@ from uuid import UUID
 
 from pydantic import SecretStr
 
-from connections.dodo_is import DodoIsConnection
+from connections.dodo_is import DodoIsApiConnection
 from logger import create_logger
-from models import StopSaleBySector
+from models import StopSaleBySalesChannel
 from more_itertools import batched
 from parsers.stop_sales_by_ingredients import (
-    parse_stop_sales_by_sectors_response,
+    parse_stop_sales_by_sales_channels_response,
 )
 
 __all__ = ('StopSalesFetcher',)
@@ -25,19 +25,19 @@ AccessTokenAndUnitUuids: TypeAlias = tuple[SecretStr, Iterable[UUID]]
 @dataclass(frozen=True, slots=True)
 class StopSalesFetchResult:
     unit_uuids: list[UUID]
-    stop_sales: list[StopSaleBySector] | None = None
+    stop_sales: list[StopSaleBySalesChannel] | None = None
     exception: Exception | None = None
 
 
 @dataclass(frozen=True, slots=True)
 class StopSalesFetchAllResult:
-    stop_sales: list[StopSaleBySector]
+    stop_sales: list[StopSaleBySalesChannel]
     error_unit_uuids: set[UUID]
 
 
 class StopSalesFetcher:
 
-    def __init__(self, connection: DodoIsConnection):
+    def __init__(self, connection: DodoIsApiConnection):
         self.__connection = connection
         self.__tasks_registry: set[AccessTokenAndUnitUuids] = set()
 
@@ -60,14 +60,14 @@ class StopSalesFetcher:
     ) -> StopSalesFetchResult:
         unit_uuids = list(unit_uuids)
 
-        stop_sales: list[StopSaleBySector] = []
+        stop_sales: list[StopSaleBySalesChannel] = []
 
         try:
             logger.debug(
                 f'Fetching stop sales',
                 extra={'unit_uuids': unit_uuids},
             )
-            response = await self.__connection.get_stop_sales_by_ingredients(
+            response = await self.__connection.get_stop_sales_by_stop_sales(
                 access_token=access_token.get_secret_value(),
                 unit_uuids=unit_uuids,
                 from_date=from_date,
@@ -81,7 +81,7 @@ class StopSalesFetcher:
                 },
             )
 
-            stop_sales += parse_stop_sales_by_sectors_response(response)
+            stop_sales += parse_stop_sales_by_sales_channels_response(response)
 
         except Exception as error:
             return StopSalesFetchResult(
@@ -109,7 +109,7 @@ class StopSalesFetcher:
                 )
                 tasks.append(task_group.create_task(task))
 
-        stop_sales: list[StopSaleBySector] = []
+        stop_sales: list[StopSaleBySalesChannel] = []
         error_unit_uuids: set[UUID] = set()
         for task in tasks:
             result = task.result()

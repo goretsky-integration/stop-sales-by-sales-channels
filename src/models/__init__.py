@@ -1,5 +1,5 @@
 from .accounts_units import *
 from .auth_credentials import *
 from .events import *
-from .stop_sales_by_sectors import *
+from .stop_sales_by_sales_channels import *
 from .units import *

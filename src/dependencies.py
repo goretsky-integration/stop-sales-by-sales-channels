@@ -1,7 +1,6 @@
 from collections.abc import AsyncGenerator
 
 import httpx
-import redis.asyncio as redis
 from fast_depends import Depends
 from faststream.rabbit import RabbitBroker
 
@@ -9,7 +8,7 @@ from config import Config, get_config
 from connections.auth_credentials_storage import (
     AuthCredentialsStorageConnection,
 )
-from connections.dodo_is import DodoIsConnection
+from connections.dodo_is import DodoIsApiConnection
 from connections.event_publisher import EventPublisher
 from new_types import (
     AuthCredentialsStorageHttpClient,
@@ -23,7 +22,6 @@ __all__ = (
     'get_auth_credentials_storage_connection',
     'get_message_queue_broker',
     'get_event_publisher',
-    'get_redis',
 )
 
 
@@ -42,8 +40,8 @@ async def get_dodo_is_http_client(
 
 def get_dodo_is_connection(
         http_client: DodoISHttpClient = Depends(get_dodo_is_http_client),
-) -> DodoIsConnection:
-    return DodoIsConnection(http_client)
+) -> DodoIsApiConnection:
+    return DodoIsApiConnection(http_client)
 
 
 async def get_auth_credentials_storage_http_client(
@@ -73,10 +71,3 @@ def get_event_publisher(
         broker: RabbitBroker = Depends(get_message_queue_broker),
 ) -> EventPublisher:
     return EventPublisher(broker)
-
-
-async def get_redis(
-        config: Config = Depends(get_config),
-) -> AsyncGenerator[redis.Redis, None]:
-    async with redis.from_url(config.redis_url) as redis_client:
-        yield redis_client
