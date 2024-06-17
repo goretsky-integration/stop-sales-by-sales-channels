@@ -7,7 +7,7 @@ import httpx
 from logger import create_logger
 from new_types import DodoISHttpClient
 
-__all__ = ('build_request_query_params', 'DodoIsConnection')
+__all__ = ('build_request_query_params', 'DodoIsApiConnection')
 
 logger = create_logger('dodo_is_api')
 
@@ -25,12 +25,12 @@ def build_request_query_params(
     }
 
 
-class DodoIsConnection:
+class DodoIsApiConnection:
 
     def __init__(self, http_client: DodoISHttpClient):
         self.__http_client = http_client
 
-    async def get_stop_sales_by_ingredients(
+    async def get_stop_sales_by_stop_sales(
             self,
             *,
             unit_uuids: Iterable[UUID],
@@ -38,7 +38,7 @@ class DodoIsConnection:
             to_date: datetime.datetime,
             access_token: str,
     ) -> httpx.Response:
-        url = '/delivery/stop-sales-sectors'
+        url = '/production/stop-sales-channels'
         query_params = build_request_query_params(
             unit_uuids=unit_uuids,
             from_date=from_date,
@@ -47,7 +47,7 @@ class DodoIsConnection:
         headers = {'Authorization': f'Bearer {access_token}'}
 
         logger.debug(
-            'Retrieving stop sales by sectors from Dodo IS',
+            'Retrieving stop sales by sales channels from Dodo IS',
             extra={'query_params': query_params},
         )
         response = await self.__http_client.get(
@@ -57,7 +57,7 @@ class DodoIsConnection:
         )
 
         logger.debug(
-            'Retrieved stop sales by sectors from Dodo IS',
+            'Retrieved stop sales by sales channels from Dodo IS',
             extra={'status_code': response.status_code},
         )
 

@@ -4,16 +4,16 @@ import httpx
 from pydantic import TypeAdapter, ValidationError
 
 from logger import create_logger
-from models import StopSaleBySector
+from models import StopSaleBySalesChannel
 
-__all__ = ('parse_stop_sales_by_sectors_response',)
+__all__ = ('parse_stop_sales_by_sales_channels_response',)
 
 logger = create_logger('parser')
 
 
-def parse_stop_sales_by_sectors_response(
+def parse_stop_sales_by_sales_channels_response(
         response: httpx.Response,
-) -> list[StopSaleBySector]:
+) -> list[StopSaleBySalesChannel]:
     logger.info(
         'Parsing account tokens response',
         extra={'response_body': response.text}
@@ -27,15 +27,15 @@ def parse_stop_sales_by_sectors_response(
         )
         raise
 
-    type_adapter = TypeAdapter(list[StopSaleBySector])
+    type_adapter = TypeAdapter(list[StopSaleBySalesChannel])
 
     try:
         return type_adapter.validate_python(
-            response_data['stopSalesBySectors'],
+            response_data['stopSalesBySalesChannels'],
         )
     except ValidationError:
         logger.error(
-            'Failed to parse stop sales by ingredients [pydantic]',
+            'Failed to parse stop sales by sales channels [pydantic]',
             extra={'response_body': response.text}
         )
         raise
