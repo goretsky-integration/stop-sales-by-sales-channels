@@ -5,21 +5,16 @@ from fast_depends import Depends
 from faststream.rabbit import RabbitBroker
 
 from config import Config, get_config
-from connections.auth_credentials_storage import (
-    AuthCredentialsStorageConnection,
-)
+from connections.storage import StorageConnection
 from connections.dodo_is import DodoIsApiConnection
 from connections.event_publisher import EventPublisher
-from new_types import (
-    AuthCredentialsStorageHttpClient,
-    DodoISHttpClient,
-)
+from new_types import StorageHttpClient, DodoISHttpClient
 
 __all__ = (
     'get_dodo_is_http_client',
     'get_dodo_is_connection',
-    'get_auth_credentials_storage_http_client',
-    'get_auth_credentials_storage_connection',
+    'get_storage_http_client',
+    'get_storage_connection',
     'get_message_queue_broker',
     'get_event_publisher',
 )
@@ -44,20 +39,18 @@ def get_dodo_is_connection(
     return DodoIsApiConnection(http_client)
 
 
-async def get_auth_credentials_storage_http_client(
+async def get_storage_http_client(
         config: Config = Depends(get_config),
-) -> AsyncGenerator[AuthCredentialsStorageHttpClient, None]:
+) -> AsyncGenerator[StorageHttpClient, None]:
     base_url = config.auth_credentials_storage_base_url
     async with httpx.AsyncClient(base_url=base_url) as http_client:
-        yield AuthCredentialsStorageHttpClient(http_client)
+        yield StorageHttpClient(http_client)
 
 
-def get_auth_credentials_storage_connection(
-        http_client: AuthCredentialsStorageHttpClient = Depends(
-            get_auth_credentials_storage_http_client,
-        ),
+def get_storage_connection(
+        http_client: StorageHttpClient = Depends(get_storage_http_client),
 ):
-    return AuthCredentialsStorageConnection(http_client)
+    return StorageConnection(http_client)
 
 
 async def get_message_queue_broker(

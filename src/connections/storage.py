@@ -1,20 +1,25 @@
 import httpx
 
 from logger import create_logger
-from new_types import AuthCredentialsStorageHttpClient
+from new_types import StorageHttpClient
 
-__all__ = ('AuthCredentialsStorageConnection',)
+__all__ = ('StorageConnection',)
 
-logger = create_logger('auth_credentials')
+logger = create_logger('storage_connection')
 
 
-class AuthCredentialsStorageConnection:
+class StorageConnection:
 
     def __init__(
             self,
-            http_client: AuthCredentialsStorageHttpClient,
+            http_client: StorageHttpClient,
     ):
         self.__http_client = http_client
+    
+    async def get_units(self) -> httpx.Response:
+        url = '/units/'
+        response = await self.__http_client.get(url)
+        return response
 
     async def get_tokens(self, account_name: str) -> httpx.Response:
         url = '/auth/token/'

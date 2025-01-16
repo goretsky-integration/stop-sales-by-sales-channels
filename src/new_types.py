@@ -3,11 +3,9 @@ from typing import NewType
 import httpx
 
 __all__ = (
-    'AuthCredentialsStorageHttpClient',
+    'StorageHttpClient',
     'DodoISHttpClient',
 )
 
-AuthCredentialsStorageHttpClient = (
-    NewType('AuthCredentialsStorageHttpClient', httpx.AsyncClient)
-)
+StorageHttpClient = NewType('StorageHttpClient', httpx.AsyncClient)
 DodoISHttpClient = NewType('DodoISHttpClient', httpx.AsyncClient)

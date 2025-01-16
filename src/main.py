@@ -4,15 +4,13 @@ import datetime
 from fast_depends import Depends, inject
 
 from config import Config, get_config
-from connections.auth_credentials_storage import (
-    AuthCredentialsStorageConnection,
-)
+from connections.storage import StorageConnection
 from connections.dodo_is import DodoIsApiConnection
 from connections.event_publisher import EventPublisher
 from context.auth_credentials_storage import AuthCredentialsFetcher
 from context.dodo_is import StopSalesFetcher
 from dependencies import (
-    get_auth_credentials_storage_connection,
+    get_storage_connection,
     get_dodo_is_connection,
     get_event_publisher,
 )
@@ -24,6 +22,7 @@ from filters import (
 from logger import create_logger, setup_logging
 from mappers import map_stop_sales_to_events
 from models import AccountUnits
+from parsers.auth_credentials import parse_account_tokens_response, parse_units_response
 from time_helpers import Period
 from units import load_units
 
@@ -32,20 +31,20 @@ logger = create_logger('main')
 
 @inject
 async def main(
-        auth_credentials_connection: AuthCredentialsStorageConnection = Depends(
-            get_auth_credentials_storage_connection,
-        ),
+        storage_connection: StorageConnection = Depends(get_storage_connection),
         dodo_is_connection: DodoIsApiConnection = Depends(get_dodo_is_connection),
-        accounts_units: list[AccountUnits] = Depends(load_units),
         config: Config = Depends(get_config),
         event_publisher: EventPublisher = Depends(get_event_publisher),
 ) -> None:
     setup_logging()
+    
+    response = await storage_connection.get_units()
+    accounts_units = parse_units_response(response)
 
     period = Period.today_to_this_moment(timezone=config.timezone)
 
     auth_credentials_fetch_unit_of_work = AuthCredentialsFetcher(
-        connection=auth_credentials_connection,
+        connection=storage_connection,
     )
     for account_units in accounts_units:
         auth_credentials_fetch_unit_of_work.register_account_name(

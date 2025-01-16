@@ -1,8 +1,6 @@
 import asyncio
 
-from connections.auth_credentials_storage import (
-    AuthCredentialsStorageConnection,
-)
+from connections.storage import StorageConnection
 from logger import create_logger
 from models import AccountTokens
 from parsers.auth_credentials import parse_account_tokens_response
@@ -14,7 +12,7 @@ logger = create_logger('auth_credentials')
 
 class AuthCredentialsFetcher:
 
-    def __init__(self, connection: AuthCredentialsStorageConnection):
+    def __init__(self, connection: StorageConnection):
         self.__connection = connection
         self.__account_names_registry: set[str] = set()
 
