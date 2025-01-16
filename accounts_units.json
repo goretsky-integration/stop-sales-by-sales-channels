@@ -111,12 +111,7 @@
         "id": 389,
         "name": "Москва 4-1",
         "uuid": "000d3a23-b0dc-80d9-11e6-b24f4a188a9f"
-      }
-    ]
-  },
-  {
-    "account_name": "api_smoluga",
-    "units": [
+      },
       {
         "id": 152,
         "name": "Калуга-1",
